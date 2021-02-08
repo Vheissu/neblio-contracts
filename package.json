@@ -1,0 +1,45 @@
+{
+    "name": "neblio-contracts",
+    "version": "0.0.1",
+    "description": "A layer two-ish type solution for code-level contracts on the Neblio blockchain",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "repository": "git@github.com:Vheissu/neblio-contracts.git",
+    "author": "Dwayne Charrington <dwaynecharrington@gmail.com>",
+    "license": "MIT",
+    "private": false,
+    "scripts": {
+        "build": "tsc --project tsconfig.build.json",
+        "start": "npx ts-node src/test.ts",
+        "watch": "tsc -w",
+        "test": "jest --verbose",
+        "clean-tests": "jest --clearCache"
+    },
+    "dependencies": {
+        "bignumber.js": "^9.0.1",
+        "bson": "^1.1.5",
+        "cors": "^2.8.5",
+        "dotenv": "^8.2.0",
+        "express": "^4.17.1",
+        "moment": "^2.29.1",
+        "mongodb": "^3.6.4",
+        "neblioapi": "github:NeblioTeam/neblio-api-lib-js",
+        "node-fetch": "^2.6.1",
+        "seedrandom": "^3.0.5",
+        "sqlite3": "^5.0.1"
+    },
+    "devDependencies": {
+        "@types/bytebuffer": "^5.0.41",
+        "@types/dotenv": "^8.2.0",
+        "@types/jest": "^25.2.3",
+        "@types/mongodb": "^3.6.3",
+        "@types/node": "^13.13.40",
+        "@types/node-cron": "^2.0.3",
+        "@types/seedrandom": "^2.4.28",
+        "jest": "^25.5.4",
+        "jest-fetch-mock": "^3.0.3",
+        "ts-jest": "^25.5.1",
+        "ts-node": "^8.10.2",
+        "typescript": "^3.9.7"
+    }
+}
