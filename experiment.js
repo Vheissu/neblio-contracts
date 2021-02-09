@@ -1,6 +1,5 @@
 const request = require('request');
 
-
 async function walletRequest(method, params = []) {
   return new Promise((resolve, reject) => {
     let options = {
@@ -32,41 +31,103 @@ async function walletRequest(method, params = []) {
   });
 }
 
-(async () => {
-  const response = await walletRequest('getblockbynumber', [2699709, true]);
+let lastBlockNum = 0;
+const subscriptions = [];
+const ntp1Subscriptions = [];
 
-  for (const tx of response.result.tx) {
-    if (tx.ntp1) {
-      console.log(tx);
-      const { metadataOfUtxos: { userData: { meta } } } = tx;
-      console.log(meta);
-    }
+async function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const stream = setInterval(async () => {
+  const latestBlockHeight = await getBlockCount();
+
+  if (latestBlockHeight) {
+    lastBlockNum = latestBlockHeight;
   }
-  
-  walletRequest('getblockcount');
-})();
+}, 1000);
 
-walletRequest('getblockcount');
+async function getBlockCount() {
+  const response = await walletRequest('getblockcount');
 
-// walletRequest('getblockbynumber', [2699640, true]);
-// walletRequest('getblockbynumber', [2699641, true]);
-// walletRequest('getblockbynumber', [2699642, true]);
+  if (response.result) {
+    return response.result;
+  }
 
-// const Neblioapi = require('neblioapi');
+  return null;
+}
 
-// const defaultClient = Neblioapi.ApiClient.instance;
-// const rpcAuth = defaultClient.authentications['rpcAuth'];
+async function getBlock(blockNumber) {
+  return walletRequest('getblockbynumber', [blockNumber, true]);
+}
 
-// rpcAuth.username = 'username';
-// rpcAuth.password = 'password';
+async function handleBlock(blockNum) {
+  if (lastBlockNum >= blockNum) {
+    const block = await getBlock(blockNum);
 
-// let apiInstance = new Neblioapi.JSONRPCApi();
-// let rpcRequest = new Neblioapi.RpcRequest('1.0', 'neblio-apis', 'getblockcount', []);
+    if (block.result) {
+      console.log(`New block height is ${blockNum} ${block.result.time}`);
 
-// apiInstance.jsonRpc(rpcRequest, (error, data, response) => {
-//     if (error) {
-//       console.error(error);
-//     } else {
-//       console.log('API called successfully. Returned data: ' + data);
-//     }
-//   });
+      // Loop over all subscriptions and call the supplied callback, passing the block result in
+      for (const sub of subscriptions) {
+        sub.callback(block.result);
+      }
+
+      // Does this block contain any ntp1 token transactions?
+      // we use a reduce to create a new array of ntp1 tokens
+      const ntp1Transactions = block.result.tx.reduce((acc, value) => {
+        if (value.ntp1) {
+          acc.push(value);
+        }
+
+        return acc;
+      }, []);
+
+      // Does this block have any ntp1 transactions?
+      if (ntp1Transactions.length) {
+        // Call one or more ntp1 subscriptions, pass the block result as the first argument
+        // and pass the array of ntp1 transactions as the second argument
+        for (const sub of ntp1Subscriptions) {
+          sub.callback(block.result, ntp1Transactions);
+        }
+      }
+
+      handleBlock(blockNum + 1);
+    } else {
+      console.error(`Block does not exist`);
+      handleBlock(blockNum);
+    }
+  } else {
+    await sleep(500);
+    handleBlock(blockNum);
+  }
+}
+
+function addSubscription(callback) {
+  subscriptions.push({ callback });
+}
+
+function addNtp1Subscription(callback) {
+  ntp1Subscriptions.push({ callback });
+}
+
+async function streamNeblio(startingBlock = 0) {
+  if (startingBlock === 0) {
+    const latestBlockHeight = await getBlockCount();
+    
+    if (latestBlockHeight) {
+      lastBlockNum = latestBlockHeight;
+    }
+  } else {
+    lastBlockNum = startingBlock;
+  }
+
+  console.log(`Starting from block ${lastBlockNum}`);
+  handleBlock(lastBlockNum);
+}
+
+addSubscription(block => {
+  console.log(block);
+});
+
+streamNeblio();
