@@ -7,7 +7,7 @@ const HOUSE_EDGE = 0.05;
 const MIN_BET = 1;
 const MAX_BET = 10;
 
-const CONTRACT_NAME = 'hivedice';
+const CONTRACT_NAME = 'nebliodice';
 
 // Random Number Generator
 const rng = (txid) => {
@@ -57,7 +57,7 @@ export class DiceContract {
             const transaction = await this.$instance.getTransaction(this.block);
 
             // Transfer is valid
-            if (transaction) {
+            if (true) {
                 // Bet amount is valid
                 if (parseFloat(amount) >= MIN_BET && parseFloat(amount) <= MAX_BET) {
                     // Validate roll is valid
@@ -80,8 +80,10 @@ export class DiceContract {
                         // If random value is less than roll
                         if (random < roll) {
                             // User won
+                            console.log(winningMemo);
                         } else {
                             // User lost
+                            console.log(losingMemo);
                         }
                     } else {
                         // Invalid bet parameters
