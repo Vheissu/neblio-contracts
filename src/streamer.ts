@@ -1,7 +1,7 @@
 import { DiceContract } from './contracts/dice.contract';
 import { Utils } from './utils';
 
-import { SqliteAdapter } from './adapters/sqlite.adapter';
+import { MongodbAdapter } from './adapters/mongodb.adapter';
 
 import axios from 'axios';
 
@@ -31,7 +31,7 @@ export class Streamer {
         }, 1000);
 
         this.registerContract('nebldice', new DiceContract());
-        this.registerAdapter(new SqliteAdapter());
+        this.registerAdapter(new MongodbAdapter('', ''));
     }
 
     public registerAdapter(adapter: any) {
