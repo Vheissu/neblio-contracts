@@ -81,7 +81,7 @@ export class Streamer {
         }
     }
 
-    async start(startingBlock = 0) {
+    async start() {
         const state = await this.adapter.loadState();
 
         if (state?.lastBlockNumber) {
@@ -90,14 +90,12 @@ export class Streamer {
             }
         }
 
-        if (startingBlock === 0) {
+        if (this.lastBlockNum === 0) {
             const latestBlockHeight = await this.getBlockCount();
 
             if (latestBlockHeight) {
                 this.lastBlockNum = latestBlockHeight;
             }
-        } else {
-            this.lastBlockNum = startingBlock;
         }
 
         console.log(`Starting from block ${this.lastBlockNum}`);
@@ -147,6 +145,10 @@ export class Streamer {
 
                 // Does this block have any ntp1 transactions?
                 if (ntp1Transactions.length) {
+                    if (this.adapter?.processNtp1Block) {
+                        this.adapter.processNtp1Block(block.result);
+                    }
+
                     for (const ntp1 of ntp1Transactions) {
                         const { metadataOfUtxos: { userData: { meta } } } = ntp1;
 
@@ -174,6 +176,9 @@ export class Streamer {
                     }
                 }
 
+                this.lastBlockNum = blockNum;
+                await this.saveState();
+
                 this.handleBlock(blockNum + 1);
             } else {
                 console.error(`Block does not exist`);
@@ -190,7 +195,7 @@ export class Streamer {
         return axios.get(`https://explorer.nebl.io/api/getrawtransaction?txid=${txId}&decrypt=1`);
     }
 
-    public async saveStateToDisk(): Promise<void> {
+    public async saveState(): Promise<void> {
         if (this.adapter?.saveState) {
             this.adapter.saveState({lastBlockNumber: this.lastBlockNum});
         }
