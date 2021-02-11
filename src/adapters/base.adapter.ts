@@ -8,6 +8,10 @@ export class AdapterBase {
         return true;
     }
 
+    protected async contractRegistered(name: string): Promise<boolean> {
+        return true;
+    }
+
     protected async destroy(): Promise<boolean> {
         return true;
     }

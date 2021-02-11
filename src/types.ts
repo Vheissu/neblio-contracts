@@ -58,3 +58,12 @@ export interface IBlock {
     error: string;
     id: string;
 }
+
+export interface IToken {
+    owner: string;
+    precision: string;
+    symbol: string;
+    metadata: unknown;
+    supply: string;
+    circulatingSupply: string;
+}

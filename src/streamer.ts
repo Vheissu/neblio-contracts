@@ -61,6 +61,10 @@ export class Streamer {
         // Push the contract reference to be called later on
         this.contracts.push(storedReference);
 
+        if (this.adapter?.contractRegistered) {
+            this.adapter?.contractRegistered(name);
+        }
+
         return this;
     }
 
@@ -146,25 +150,27 @@ export class Streamer {
 
                 // Does this block have any ntp1 transactions?
                 if (ntp1Transactions.length) {
-                    if (this.adapter?.processNtp1Block) {
+                    if (this.adapter?.processNtp1Block && ntp1Transactions.length) {
                         this.adapter.processNtp1Block(block.result);
                     }
 
                     for (const ntp1 of ntp1Transactions) {
-                        const { metadataOfUtxos: { userData: { meta } } } = ntp1;
+                        if (ntp1?.metadataOfUtxos) {
+                            const { metadataOfUtxos: { userData: { meta } } } = ntp1;
 
-                        if (meta) {
-                            const { name, action, payload } = meta;
-
-                            const contract = this.contracts.find(c => c.name === name);
-
-                            if (contract) {
-                                if (contract?.contract.updateBlockInfo) {
-                                    contract.contract.updateBlockInfo(block.result);
-                                }
-
-                                if (contract?.contract?.[action]) {
-                                    contract.contract?.[action](payload, block.result);
+                            if (meta) {
+                                const { name, action, payload } = meta;
+    
+                                const contract = this.contracts.find(c => c.name === name);
+    
+                                if (contract) {
+                                    if (contract?.contract.updateBlockInfo) {
+                                        contract.contract.updateBlockInfo(block.result);
+                                    }
+    
+                                    if (contract?.contract?.[action]) {
+                                        contract.contract?.[action](payload, block.result);
+                                    }
                                 }
                             }
                         }

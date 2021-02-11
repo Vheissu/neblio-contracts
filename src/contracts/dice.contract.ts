@@ -34,6 +34,8 @@ export class DiceContract {
 
     private block = null;
 
+    private tableName = 'nebldice';
+
     private create() {
         // Runs every time register is called on this contract
         // Do setup logic and code in here (creating a database, etc)
