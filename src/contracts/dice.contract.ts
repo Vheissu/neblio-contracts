@@ -3,6 +3,18 @@ import { Utils } from './../utils';
 import seedrandom from 'seedrandom';
 import BigNumber from 'bignumber.js';
 
+/**
+ * TEst payload
+ * {
+  "name": "nebldice",
+  "action": "roll",
+  "payload": {
+    "amount": "1 DICE",
+    "roll": "54"
+  }
+}
+ */
+
 const HOUSE_EDGE = 0.05;
 const MIN_BET = 1;
 const MAX_BET = 10;
@@ -46,10 +58,10 @@ export class DiceContract {
      * @param payload
      * @param param1 - sender and amount
      */
-    private async roll(payload: { roll: number }, { sender, amount }) {
+    private async roll(payload: { roll: number, amount: string }) {
         try {
             // Destructure the values from the payload
-            const { roll } = payload;
+            let { roll, amount } = payload;
 
             console.log(`Roll: ${roll} Amount: ${amount}`);
 
