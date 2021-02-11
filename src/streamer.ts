@@ -164,7 +164,7 @@ export class Streamer {
                                 }
 
                                 if (contract?.contract?.[action]) {
-                                    contract.contract.action(payload, block.result);
+                                    contract.contract?.[action](payload, block.result);
                                 }
                             }
                         }
