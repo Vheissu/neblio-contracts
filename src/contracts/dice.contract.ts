@@ -56,6 +56,11 @@ export class DiceContract {
             // Get the transaction from the blockchain
             const transaction = await this.$instance.getTransaction(this.block);
 
+            const amountSplit = amount.split(' ');
+            amount = amountSplit[0];
+
+            const token = amountSplit[1];
+
             // Transfer is valid
             if (true) {
                 // Bet amount is valid
