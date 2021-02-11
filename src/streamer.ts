@@ -4,6 +4,7 @@ import { Utils } from './utils';
 import { MongodbAdapter } from './adapters/mongodb.adapter';
 
 import axios from 'axios';
+import { config } from './config';
 
 interface Contract {
     name: string;
@@ -28,10 +29,10 @@ export class Streamer {
             if (latestBlockHeight) {
                 this.lastBlockNum = latestBlockHeight;
             }
-        }, 1000);
+        }, config.BLOCK_CHECK_INTERVAL);
 
         this.registerContract('nebldice', new DiceContract());
-        this.registerAdapter(new MongodbAdapter('', ''));
+        this.registerAdapter(new MongodbAdapter(config.MONGO_HOST, config.MONGO_DB));
     }
 
     public registerAdapter(adapter: any) {
