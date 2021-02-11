@@ -55,7 +55,8 @@ export class MongodbAdapter extends AdapterBase {
     }
 
     protected async addToUserBalance(account: string, token: any, amount: string): Promise<any> {
-        const balance = await this.db.collection('balances').findOne({account, symbol: token.symbol});
+        const collection = this.db.collection('balances');
+        const balance = await collection.findOne({account, symbol: token.symbol});
 
         // No existing balance, add new DB row
         if (!balance) {
@@ -63,7 +64,7 @@ export class MongodbAdapter extends AdapterBase {
             balance.symbol = token.symbol;
             balance.balance = amount;
 
-            await this.db.collection('balances').insertOne(balance);
+            await collection.insertOne(balance);
 
             return true;
         }
@@ -75,21 +76,11 @@ export class MongodbAdapter extends AdapterBase {
             return null;
         }
 
-        await this.db.collection('balances').updateOne({account, symbol: token.symbol}, balance);
+        await collection.updateOne({account, symbol: token.symbol}, balance);
     }
 
     protected async getUserBalanceForSymbol(account: string, symbol: string) {
-        return new Promise(resolve => {
-            this.db.all(`SELECT account, symbol, balance FROM balances WHERE account = ${account} AND symbol = ${symbol}`, (err, rows) => {
-                if (!err) {
-                    const balance = rows?.[0];
-
-                    return resolve(balance);
-                }
-
-                return resolve(null);
-            });
-        });
+        return this.db.collection('balances').findOne({account, symbol});
     }
 
     protected async loadState(): Promise<any> {
@@ -125,8 +116,12 @@ export class MongodbAdapter extends AdapterBase {
         }
     }
 
-    protected async processBlock(block: any) {
+    protected async processNtp1Block(block: any) {
         this.block = block;
+
+        const collection = this.db.collection('chain');
+
+        return collection.insertOne(block);
     }
 
     protected async destroy(): Promise<boolean> {
