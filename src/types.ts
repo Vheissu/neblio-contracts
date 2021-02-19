@@ -67,3 +67,9 @@ export interface IToken {
     supply: string;
     circulatingSupply: string;
 }
+
+export interface IInputToken {
+    amount: string;
+    issueTxid: string;
+    tokenName: string;
+}

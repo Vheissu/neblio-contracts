@@ -1,3 +1,4 @@
+import { IInputToken } from './types';
 import { DiceContract } from './contracts/dice.contract';
 import { Utils } from './utils';
 
@@ -166,6 +167,8 @@ export class Streamer {
                                 // Is the provided name matching that of a contract?
                                 const contract = this.contracts.find(c => c.name === name);
 
+                                const foundInputTokens: IInputToken[] = [];
+
                                 // Do we have inputs? 
                                 if (ntp1.vin.length) {
                                     // Iterate over every single input
@@ -175,14 +178,20 @@ export class Streamer {
                                             for (const token of vin.tokens) {
                                                 const amount = token.amount;
                                                 const issueTxid = token.issueTxid;
-                                                const tokenName = token.metadataOfIssuance.data.tokenName;
+                                                const tokenName = token?.metadataOfIssuance?.data?.tokenName;
+
+                                                foundInputTokens.push({ amount, issueTxid, tokenName });
                                             }
                                         }
                                     }
                                 }
     
                                 if (contract) {
-                                    if (contract?.contract.updateBlockInfo) {
+                                    if (contract?.contract?.updateInputTokens) {
+                                        contract.contract.updateInputTokens(foundInputTokens);
+                                    }
+
+                                    if (contract?.contract?.updateBlockInfo) {
                                         contract.contract.updateBlockInfo(block);
                                     }
     
