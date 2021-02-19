@@ -1,4 +1,4 @@
-import { config } from './../config';
+import { config } from '../config';
 import { AdapterBase } from './base.adapter';
 
 import BigNumber from 'bignumber.js';
@@ -6,7 +6,6 @@ import BigNumber from 'bignumber.js';
 import { MongoClient, Db } from 'mongodb';
 
 import BlacklistedTokens from '../token-blacklist.json';
-import { config } from 'src/config';
 
 const calculateBalance = (balance, quantity, precision, add) => {
     if (add) {
