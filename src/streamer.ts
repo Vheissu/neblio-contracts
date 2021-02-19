@@ -226,7 +226,11 @@ export class Streamer {
 
     async getTransaction(txId: string) {
         // Test: f1eb2c44be5745dc47aedea9c9e9bf4bf2427a309b71b71d6c5ee05cf7c11b82
-        return axios.get(`https://explorer.nebl.io/api/getrawtransaction?txid=${txId}&decrypt=1`);
+        try {
+            return (await axios.get(`https://explorer.nebl.io/api/getrawtransaction?txid=${txId}&decrypt=1`)).data;
+        } catch (e) {
+            return null;
+        }
     }
 
     public async saveState(): Promise<void> {
