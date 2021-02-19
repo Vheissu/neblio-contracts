@@ -79,15 +79,13 @@ export class DiceContract {
             console.log(`Roll: ${roll} Amount: ${amount}`);
 
             // Get the transaction from the blockchain
-            const transaction = await this.$instance.getTransaction(this.block);
+            const transaction = await this.$instance.getTransaction(this.block.tx[0].txid);
 
             const amountSplit = amount.split(' ');
             amount = amountSplit[0];
 
-            const token = amountSplit[1];
-
             // Transfer is valid
-            if (true) {
+            if (transaction) {
                 // Bet amount is valid
                 if (parseFloat(amount) >= MIN_BET && parseFloat(amount) <= MAX_BET) {
                     // Validate roll is valid
