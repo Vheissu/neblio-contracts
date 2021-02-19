@@ -11,6 +11,8 @@ interface Contract {
     contract: any;
 }
 
+// Start block at 2717269 to see example NTP1 tokens with payloads
+
 export class Streamer {
     private subscriptions: any[] = [];
     private ntp1Subscriptions: any[] = [];
@@ -24,7 +26,7 @@ export class Streamer {
 
     constructor() {
         this.blockHeightStreamer = setInterval(async () => {
-            const latestBlockHeight = await this.getBlockCount();
+            const latestBlockHeight = await Utils.getBlockCount();
 
             if (latestBlockHeight) {
                 this.lastBlockNum = latestBlockHeight;
@@ -96,7 +98,7 @@ export class Streamer {
         }
 
         if (this.lastBlockNum === 0) {
-            const latestBlockHeight = await this.getBlockCount();
+            const latestBlockHeight = await Utils.getBlockCount();
 
             if (latestBlockHeight) {
                 this.lastBlockNum = latestBlockHeight;
@@ -108,39 +110,26 @@ export class Streamer {
         this.handleBlock(this.lastBlockNum);
     }
 
-    async getBlockCount() {
-        const response = (await Utils.walletRequest('getblockcount')) as any;
-
-        if (response.result) {
-            return response.result;
-        }
-
-        return null;
-    }
-
-    async getBlock(blockNumber) {
-        return Utils.walletRequest('getblockbynumber', [blockNumber, true]);
-    }
-
     async handleBlock(blockNum) {
         if (this.lastBlockNum >= blockNum) {
-            const block = (await this.getBlock(blockNum)) as any;
+            const blockHash = (await Utils.getBlockHash(blockNum)) as any;
+            const block = (await Utils.getBlockByHash(blockHash)) as any;
 
-            if (block.result) {
-                console.log(`New block height is ${blockNum} ${block.result.time}`);
+            if (block) {
+                console.log(`New block height is ${blockNum} ${block.time}`);
 
                 if (this.adapter?.processBlock) {
-                    this.adapter.processBlock(block.result);
+                    this.adapter.processBlock(block);
                 }
 
                 // Loop over all subscriptions and call the supplied callback, passing the block result in
                 for (const sub of this.subscriptions) {
-                    sub.callback(block.result);
+                    sub.callback(block);
                 }
 
                 // Does this block contain any ntp1 token transactions?
                 // we use a reduce to create a new array of ntp1 tokens
-                const ntp1Transactions = block.result.tx.reduce((acc, value) => {
+                const ntp1Transactions = block.tx.reduce((acc, value) => {
                     if (value.ntp1) {
                         acc.push(value);
                     }
@@ -148,10 +137,12 @@ export class Streamer {
                     return acc;
                 }, []);
 
+                block.tx = ntp1Transactions;
+
                 // Does this block have any ntp1 transactions?
                 if (ntp1Transactions.length) {
-                    if (this.adapter?.processNtp1Block && ntp1Transactions.length) {
-                        this.adapter.processNtp1Block(block.result);
+                    if (this.adapter?.processNtp1Block) {
+                        this.adapter.processNtp1Block(block);
                     }
 
                     for (const ntp1 of ntp1Transactions) {
@@ -162,14 +153,26 @@ export class Streamer {
                                 const { name, action, payload } = meta;
     
                                 const contract = this.contracts.find(c => c.name === name);
+
+                                if (ntp1.vin.length) {
+                                    for (const vin of ntp1.vin) {
+                                        if (vin.tokens.length) {
+                                            for (const token of vin.tokens) {
+                                                const amount = token.amount;
+                                                const issueTxid = token.issueTxid;
+                                                const tokenName = token.metadataOfIssuance.data.tokenName;
+                                            }
+                                        }
+                                    }
+                                }
     
                                 if (contract) {
                                     if (contract?.contract.updateBlockInfo) {
-                                        contract.contract.updateBlockInfo(block.result);
+                                        contract.contract.updateBlockInfo(block);
                                     }
     
                                     if (contract?.contract?.[action]) {
-                                        contract.contract?.[action](payload, block.result);
+                                        contract.contract?.[action](payload, block);
                                     }
                                 }
                             }
@@ -179,7 +182,7 @@ export class Streamer {
                     // Call one or more ntp1 subscriptions, pass the block result as the first argument
                     // and pass the array of ntp1 transactions as the second argument
                     for (const sub of this.ntp1Subscriptions) {
-                        sub.callback(block.result, ntp1Transactions);
+                        sub.callback(block, ntp1Transactions);
                     }
                 }
 
