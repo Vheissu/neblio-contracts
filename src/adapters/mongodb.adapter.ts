@@ -203,7 +203,11 @@ export class MongodbAdapter extends AdapterBase {
 
         const collection = this.db.collection('chain');
 
-        return collection.insertOne(block);
+        const blockExists = await collection.findOne({hash: block.hash});
+
+        if (!blockExists) {
+            return collection.insertOne(block);
+        }
     }
 
     protected async destroy(): Promise<boolean> {
