@@ -36,6 +36,66 @@ export const Utils = {
         });
     },
 
+    async getBlockHash(blockHeight: number) {
+        const response = (await Utils.walletRequest('getblockhash', [blockHeight])) as any;
+
+        if (response.result) {
+            return response.result;
+        }
+
+        return null;
+    },
+
+    async getBlockCount() {
+        const response = (await Utils.walletRequest('getblockcount')) as any;
+
+        if (response.result) {
+            return response.result;
+        }
+
+        return null;
+    },
+
+    async getBlock(blockNumber: number) {
+        const response = (await Utils.walletRequest('getblockcount', [blockNumber, true])) as any;
+
+        if (response.result) {
+            return response.result;
+        }
+
+        return null;
+    },
+
+    async getBlockByHash(blockHash: string) {
+        const response = (await Utils.walletRequest('getblock', [blockHash, true, true])) as any;
+
+        if (response.result) {
+            return response.result;
+        }
+
+        return null;
+    },
+
+    async getRawTransaction(txid: string) {
+        const response = (await Utils.walletRequest('getrawtransaction', [txid, true])) as any;
+
+        if (response.result) {
+            return response.result;
+        }
+
+        return null;
+    },
+
+    async getNewAddress(label: string) {
+        const response = (await Utils.walletRequest('getnewaddress', [label])) as any;
+
+        if (response.result) {
+            return response.result;
+        }
+
+        return null;
+    },
+
     // Fisher Yates shuffle
     shuffle(array) {
         let currentIndex = array.length;
