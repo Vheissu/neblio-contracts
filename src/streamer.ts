@@ -137,25 +137,40 @@ export class Streamer {
                     return acc;
                 }, []);
 
+                // Overwrite the transactions to only care about NTP1 transactions we've found
                 block.tx = ntp1Transactions;
 
                 // Does this block have any ntp1 transactions?
                 if (ntp1Transactions.length) {
+                    // Does our adapter have a process method?
                     if (this.adapter?.processNtp1Block) {
                         this.adapter.processNtp1Block(block);
                     }
 
+                    // Loop over every ntp1
                     for (const ntp1 of ntp1Transactions) {
+                        // Does our ntp1 token has metadata?
                         if (ntp1?.metadataOfUtxos) {
+                            // Destructure our ntp1 token to get any user meta out of it
                             const { metadataOfUtxos: { userData: { meta } } } = ntp1;
 
                             if (meta) {
+                                // We are interested in finding tokens with these properties
                                 const { name, action, payload } = meta;
-    
+
+                                // We do not have a name or action, skip iteration
+                                if (!name && !action) {
+                                    continue;
+                                }
+                                
+                                // Is the provided name matching that of a contract?
                                 const contract = this.contracts.find(c => c.name === name);
 
+                                // Do we have inputs? 
                                 if (ntp1.vin.length) {
+                                    // Iterate over every single input
                                     for (const vin of ntp1.vin) {
+                                        // Does our input have a tokens array?
                                         if (vin.tokens.length) {
                                             for (const token of vin.tokens) {
                                                 const amount = token.amount;
