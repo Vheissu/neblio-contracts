@@ -111,7 +111,7 @@ export class DiceContract {
                         const winningMemo = `You won ${tokensWon}. Roll: ${random}, Your guess: ${roll} -- Server seed: ${this.block.hash} Client seed: ${seed}`;
 
                         // Memo that shows in users memo when they lose
-                        const losingMemo = `You lost ${amount}. Roll: ${random}, Your guess: ${roll}`;
+                        const losingMemo = `You lost ${amount}. Roll: ${random}, Your guess: ${roll} -- Server seed: ${this.block.hash} Client seed: ${seed}`;
 
                         // If random value is less than roll
                         if (random < roll) {
